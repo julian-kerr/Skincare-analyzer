@@ -1,3 +1,6 @@
+import json
+import sqlite3
+
 PRODUCTS = [
     {
         "name": "SKIN1004 Madagascar Centella Ampoule Foam",
@@ -170,16 +173,45 @@ PRICE_LEVELS = {
     "high": 3
 }
 
+def load_products_from_database():
+    connection = sqlite3.connect("products.db")
+    connection.row_factory = sqlite3.Row
+
+    rows = connection.execute("""
+        SELECT *
+        FROM products
+    """).fetchall()
+
+    connection.close()
+
+    products = []
+
+    for row in rows:
+        products.append({
+            "name": row["name"],
+            "brand": row["brand"],
+            "price_level": row["price_level"],
+            "ingredients": json.loads(row["ingredients"]),
+            "goals": json.loads(row["goals"]),
+            "sensitive_skin_safe": bool(row["sensitive_skin_safe"]),
+            "url": row["url"]
+        })
+
+    return products
+
 
 def recommend_products(
     sensitive_skin: bool,
     budget: str,
     detected_concerns: list[dict]
 ):
+
+    products = load_products_from_database()
+    
     max_price_level = BUDGET_LIMITS[budget]
     scored_products = []
 
-    for product in PRODUCTS:
+    for product in products:
         if PRICE_LEVELS[product["price_level"]] > max_price_level:
             continue
 
@@ -220,5 +252,28 @@ def recommend_products(
         reverse=True
     )
 
-    return scored_products[:3]
+    selected_products = []
 
+    # Choose the best product for each detected concern first
+    for concern in sorted(
+        detected_concerns,
+        key=lambda concern: concern["confidence"],
+        reverse=True
+    ):
+        for product in scored_products:
+            if (
+                concern["name"] in product["matched_concerns"]
+                and product not in selected_products
+            ):
+                selected_products.append(product)
+                break
+
+    # Fill remaining recommendation slots by score
+    for product in scored_products:
+        if product not in selected_products:
+            selected_products.append(product)
+
+        if len(selected_products) == 3:
+            break
+
+    return selected_products
