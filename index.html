@@ -1,56 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Skincare Analyzer</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Skincare Analyzer</title>
 </head>
+
 <body>
-    <h1>AI Skincare Analyzer</h1>
+  <h1>AI Skincare Analyzer</h1>
 
-    <form id="upload-form">
-        <label for="image">Upload a skin photo:</label>
-        <input type="file" id="image" accept="image/*" required>
-        <button type="submit">Analyze Image</button>
-    </form>
+  <form id="upload-form">
+    <label for="image">Upload a skin photo:</label>
+    <input type="file" id="image" accept="image/*" required>
 
-    <p id="status"></p>
-    <pre id="result"></pre>
+    <br><br>
 
-    <script>
-        const form = document.getElementById("upload-form");
-        const status = document.getElementById("status");
-        const result = document.getElementById("result");
+    <label for="goal">Main skincare goal:</label>
+    <select id="goal" required>
+      <option value="">Choose a goal</option>
+      <option value="acne">Blemishes</option>
+      <option value="redness">Redness</option>
+      <option value="dryness">Dryness</option>
+      <option value="oiliness">Oiliness</option>
+      <option value="general">General skincare</option>
+    </select>
 
-        form.addEventListener("submit", async (event) => {
-            event.preventDefault();
+    <br><br>
 
-            const imageFile = document.getElementById("image").files[0];
-            const formData = new FormData();
-            formData.append("image", imageFile);
+    <label>
+      <input type="checkbox" id="sensitive-skin">
+      I have sensitive skin
+    </label>
 
-            status.textContent = "Uploading...";
-            result.textContent = "";
+    <br><br>
 
-            try {
-                const response = await fetch("http://127.0.0.1:8000/analyze", {
-                    method: "POST",
-                    body: formData
-                });
+    <label for="budget">Budget:</label>
+    <select id="budget" required>
+      <option value="">Choose a budget</option>
+      <option value="low">Low</option>
+      <option value="medium">Medium</option>
+      <option value="high">High</option>
+    </select>
 
-                const data = await response.json();
+    <br><br>
 
-                if (!response.ok) {
-                    throw new Error(data.detail || "Upload failed");
-                }
+    <button type="submit">Analyze Image</button>
+  </form>
 
-                status.textContent = "Image uploaded successfully.";
-                result.textContent = JSON.stringify(data, null, 2);
-            } catch (error) {
-                status.textContent = "Something went wrong.";
-                result.textContent = error.message;
-            }
+  <p id="status"></p>
+  <pre id="result"></pre>
+
+  <script>
+    const form = document.getElementById("upload-form");
+    const status = document.getElementById("status");
+    const result = document.getElementById("result");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const imageFile = document.getElementById("image").files[0];
+      const formData = new FormData();
+      formData.append("image", imageFile);
+      formData.append("goal", document.getElementById("goal").value);
+      formData.append(
+        "sensitive_skin",
+        document.getElementById("sensitive-skin").checked
+      );
+      formData.append("budget", document.getElementById("budget").value);
+
+      status.textContent = "Uploading...";
+      result.textContent = "";
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/analyze", {
+          method: "POST",
+          body: formData
         });
-    </script>
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.detail || "Upload failed");
+        }
+
+        status.textContent = "Image uploaded successfully.";
+        result.textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        status.textContent = "Something went wrong.";
+        result.textContent = error.message;
+      }
+    });
+  </script>
 </body>
+
 </html>
