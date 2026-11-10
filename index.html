@@ -13,20 +13,7 @@
   <form id="upload-form">
     <label for="image">Upload a skin photo:</label>
     <input type="file" id="image" accept="image/*" required>
-
-    <br><br>
-
-    <label for="goal">Main skincare goal:</label>
-    <select id="goal" required>
-      <option value="">Choose a goal</option>
-      <option value="acne">Blemishes</option>
-      <option value="redness">Redness</option>
-      <option value="dryness">Dryness</option>
-      <option value="oiliness">Oiliness</option>
-      <option value="general">General skincare</option>
-    </select>
-
-    <br><br>
+<br>
 
     <label>
       <input type="checkbox" id="sensitive-skin">
@@ -62,7 +49,6 @@
       const imageFile = document.getElementById("image").files[0];
       const formData = new FormData();
       formData.append("image", imageFile);
-      formData.append("goal", document.getElementById("goal").value);
       formData.append(
         "sensitive_skin",
         document.getElementById("sensitive-skin").checked

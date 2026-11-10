@@ -1,6 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
-
+from products import recommend_products
 app = FastAPI(title="AI Skincare Analyzer")
 
 app.add_middleware(
@@ -19,7 +19,6 @@ def home():
 @app.post("/analyze")
 async def analyze_image(
     image: UploadFile = File(...),
-    goal: str = Form(...),
     sensitive_skin: bool = Form(...),
     budget: str = Form(...)
     ):
@@ -40,14 +39,19 @@ async def analyze_image(
             detail="Image cannot exceed 10mb"
         )
 
+    recommendations = recommend_products(
+        sensitive_skin=sensitive_skin,
+        budget=budget
+    )
+
     return{
         "filename": image.filename,
         "content_type": image.content_type,
         "size_bytes": len(image_data),
         "preferences": {
-            "goal": goal,
             "sensitive_skin": sensitive_skin,
             "budget": budget
         },
+        "recommendations": recommendations,
         "status": "image validated successfully"
     }
