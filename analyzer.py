@@ -14,6 +14,7 @@ def analyze_skin_image(image_data: bytes) -> dict:
 Analyze this image for cosmetic skincare concerns only.
 
 Do not diagnose diseases or make medical claims.
+
 Choose only from these concern names:
 - redness
 - blemishes
@@ -40,6 +41,16 @@ Return ONLY valid JSON in this exact format:
 }
 
 Confidence must be a number between 0.0 and 1.0.
+
+Return an estimated confidence score for display only.
+This is not a medically calibrated probability.
+
+Do not default to 0.80. Choose the confidence based on the visual strength of the evidence:
+- 0.90–1.00: very clear
+- 0.70–0.89: reasonably clear
+- 0.50–0.69: uncertain
+- below 0.50: weak evidence
+
 If the image is unclear or not a usable skin photo, return an empty concerns list and set usable to false.
 """
 
@@ -52,6 +63,11 @@ If the image is unclear or not a usable skin photo, return an empty concerns lis
                 "images": [encoded_image],
             }
         ],
+        options={
+            "num_ctx": 8192,
+            "temperature": 0.0,
+            "seed": 42,
+        },
     )
 
     raw_content = response["message"]["content"]
