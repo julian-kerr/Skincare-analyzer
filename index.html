@@ -176,18 +176,22 @@
           const productCard = document.createElement("article");
 
           productCard.innerHTML = `
-          <h3>${product.name}</h3>
-          <p><strong>Brand:</strong> ${product.brand}</p>
-          <p><strong>Match score:</strong> ${product.match_score}</p>
-          <p><strong>Ingredients:</strong>
+        <h3>${product.name}</h3>
+        <p><strong>Brand:</strong> ${product.brand}</p>
+        <p><strong>Category:</strong> ${product.category}</p>
+        <p><strong>Match score:</strong> ${product.match_score}</p>
+        <p><strong>Ingredients:</strong>
             ${product.ingredients.join(", ")}
-          </p>
-          <p><strong>Why it matched:</strong>
+        </p>
+        <p><strong>How to use:</strong> ${product.usage}</p>
+        <p><strong>Frequency:</strong> ${product.frequency}</p>
+        <p><strong>Warnings:</strong> ${product.warnings}</p>
+        <p><strong>Why it matched:</strong>
             ${product.match_reasons.join(" • ")}
-          </p>
-          <a href="${product.url}" target="_blank" rel="noopener noreferrer">
+        </p>
+        <a href="${product.url}" target="_blank" rel="noopener noreferrer">
             View on Olive Young
-          </a>
+        </a>
         `;
 
           recommendations.appendChild(productCard);

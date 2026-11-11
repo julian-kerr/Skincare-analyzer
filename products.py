@@ -18,12 +18,20 @@ PRODUCTS = [
         "name": "SKIN&LAB Niacinamide Recovery Serum",
         "brand": "SKIN&LAB",
         "price_level": "low",
+        "category": "serum",
+        "routine_step": 2,
+        "usage": "Apply 2–3 drops to clean, dry skin after cleansing.",
+        "frequency": "Once daily, preferably in the evening.",
+        "warnings": "Patch test first. Stop using if irritation occurs.",
         "ingredients": [
             "niacinamide",
             "zinc PCA",
             "allantoin"
         ],
-        "goals": ["oiliness", "blemishes"],
+        "goals": [
+            "oiliness",
+            "blemishes"
+        ],
         "sensitive_skin_safe": True,
         "url": "https://global.oliveyoung.com/product/detail?prdtNo=GA250329527"
     },
@@ -191,6 +199,11 @@ def load_products_from_database():
             "name": row["name"],
             "brand": row["brand"],
             "price_level": row["price_level"],
+            "category": row["category"],
+            "routine_step": row["routine_step"],
+            "usage": row["usage"],
+            "frequency": row["frequency"],
+            "warnings": row["warnings"],
             "ingredients": json.loads(row["ingredients"]),
             "goals": json.loads(row["goals"]),
             "sensitive_skin_safe": bool(row["sensitive_skin_safe"]),
