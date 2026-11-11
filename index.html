@@ -5,6 +5,71 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Skincare Analyzer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 32px;
+      background: #f8f7f4;
+      color: #263238;
+    }
+
+    h1 {
+      color: #315c4a;
+      margin-bottom: 32px;
+    }
+
+    form,
+    article,
+    #concerns>div {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    form {
+      display: grid;
+      gap: 16px;
+    }
+
+    button {
+      width: fit-content;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      background: #315c4a;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background: #244536;
+    }
+
+    article h3 {
+      color: #315c4a;
+      margin-top: 0;
+    }
+
+    #concerns>div {
+      display: inline-block;
+      margin-right: 12px;
+      padding: 14px 18px;
+    }
+
+    a {
+      color: #315c4a;
+      font-weight: bold;
+    }
+
+    #results {
+      margin-top: 32px;
+    }
+  </style>
 </head>
 
 <body>
@@ -13,7 +78,7 @@
   <form id="upload-form">
     <label for="image">Upload a skin photo:</label>
     <input type="file" id="image" accept="image/*" required>
-<br>
+    <br>
 
     <label>
       <input type="checkbox" id="sensitive-skin">
@@ -36,12 +101,20 @@
   </form>
 
   <p id="status"></p>
-  <pre id="result"></pre>
+  <section id="results" hidden>
+    <h2>Detected concerns</h2>
+    <div id="concerns"></div>
+
+    <h2>Recommended products</h2>
+    <div id="recommendations"></div>
+  </section>
 
   <script>
     const form = document.getElementById("upload-form");
     const status = document.getElementById("status");
-    const result = document.getElementById("result");
+    const results = document.getElementById("results");
+    const concerns = document.getElementById("concerns");
+    const recommendations = document.getElementById("recommendations");
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -56,7 +129,9 @@
       formData.append("budget", document.getElementById("budget").value);
 
       status.textContent = "Uploading...";
-      result.textContent = "";
+      results.hidden = true;
+      concerns.innerHTML = "";
+      recommendations.innerHTML = "";
 
       try {
         const response = await fetch("http://127.0.0.1:8000/analyze", {
@@ -70,8 +145,38 @@
           throw new Error(data.detail || "Upload failed");
         }
 
-        status.textContent = "Image uploaded successfully.";
-        result.textContent = JSON.stringify(data, null, 2);
+        status.textContent = "Analysis complete.";
+        results.hidden = false;
+
+        data.analysis.detected_concerns.forEach((concern) => {
+          const concernCard = document.createElement("div");
+
+          concernCard.innerHTML = `
+    <strong>${concern.name}</strong>
+    <span>${Math.round(concern.confidence * 100)}% confidence</span>
+  `;
+
+          concerns.appendChild(concernCard);
+        });
+
+        data.recommendations.forEach((product) => {
+          const productCard = document.createElement("article");
+
+          productCard.innerHTML = `
+    <h3>${product.name}</h3>
+    <p><strong>Brand:</strong> ${product.brand}</p>
+    <p><strong>Match score:</strong> ${product.match_score}</p>
+    <p><strong>Ingredients:</strong> ${product.ingredients.join(", ")}</p>
+    <p><strong>Why it matched:</strong>
+      ${product.match_reasons.join(" • ")}
+    </p>
+    <a href="${product.url}" target="_blank" rel="noopener noreferrer">
+      View on Olive Young
+    </a>
+  `;
+
+          recommendations.appendChild(productCard);
+        });
       } catch (error) {
         status.textContent = "Something went wrong.";
         result.textContent = error.message;
