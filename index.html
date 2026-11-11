@@ -69,6 +69,12 @@
     #results {
       margin-top: 32px;
     }
+
+    #concerns p {
+      margin-bottom: 0;
+      color: #526067;
+      font-size: 14px;
+    }
   </style>
 </head>
 
@@ -109,80 +115,90 @@
     <div id="recommendations"></div>
   </section>
 
-  <script>
-    const form = document.getElementById("upload-form");
-    const status = document.getElementById("status");
-    const results = document.getElementById("results");
-    const concerns = document.getElementById("concerns");
-    const recommendations = document.getElementById("recommendations");
+<script>
+  const form = document.getElementById("upload-form");
+  const status = document.getElementById("status");
+  const results = document.getElementById("results");
+  const concerns = document.getElementById("concerns");
+  const recommendations = document.getElementById("recommendations");
 
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
 
-      const imageFile = document.getElementById("image").files[0];
-      const formData = new FormData();
-      formData.append("image", imageFile);
-      formData.append(
-        "sensitive_skin",
-        document.getElementById("sensitive-skin").checked
-      );
-      formData.append("budget", document.getElementById("budget").value);
+    const imageFile = document.getElementById("image").files[0];
 
-      status.textContent = "Uploading...";
-      results.hidden = true;
-      concerns.innerHTML = "";
-      recommendations.innerHTML = "";
+    const formData = new FormData();
+    formData.append("image", imageFile);
+    formData.append(
+      "sensitive_skin",
+      document.getElementById("sensitive-skin").checked
+    );
+    formData.append(
+      "budget",
+      document.getElementById("budget").value
+    );
 
-      try {
-        const response = await fetch("http://127.0.0.1:8000/analyze", {
-          method: "POST",
-          body: formData
-        });
+    status.textContent = "Analyzing image...";
+    results.hidden = true;
+    concerns.innerHTML = "";
+    recommendations.innerHTML = "";
 
-        const data = await response.json();
+    try {
+      const response = await fetch("http://127.0.0.1:8000/analyze", {
+        method: "POST",
+        body: formData
+      });
 
-        if (!response.ok) {
-          throw new Error(data.detail || "Upload failed");
-        }
+      const data = await response.json();
 
-        status.textContent = "Analysis complete.";
-        results.hidden = false;
-
-        data.analysis.detected_concerns.forEach((concern) => {
-          const concernCard = document.createElement("div");
-
-          concernCard.innerHTML = `
-    <strong>${concern.name}</strong>
-    <span>${Math.round(concern.confidence * 100)}% confidence</span>
-  `;
-
-          concerns.appendChild(concernCard);
-        });
-
-        data.recommendations.forEach((product) => {
-          const productCard = document.createElement("article");
-
-          productCard.innerHTML = `
-    <h3>${product.name}</h3>
-    <p><strong>Brand:</strong> ${product.brand}</p>
-    <p><strong>Match score:</strong> ${product.match_score}</p>
-    <p><strong>Ingredients:</strong> ${product.ingredients.join(", ")}</p>
-    <p><strong>Why it matched:</strong>
-      ${product.match_reasons.join(" • ")}
-    </p>
-    <a href="${product.url}" target="_blank" rel="noopener noreferrer">
-      View on Olive Young
-    </a>
-  `;
-
-          recommendations.appendChild(productCard);
-        });
-      } catch (error) {
-        status.textContent = "Something went wrong.";
-        result.textContent = error.message;
+      if (!response.ok) {
+        throw new Error(data.detail || "Upload failed");
       }
-    });
-  </script>
+
+      status.textContent = "Analysis complete.";
+      results.hidden = false;
+
+      data.analysis.detected_concerns.forEach((concern) => {
+        const concernCard = document.createElement("div");
+
+        concernCard.innerHTML = `
+          <strong>${concern.name}</strong>
+          <span>${Math.round(concern.confidence * 100)}% confidence</span>
+          <p>
+            ${concern.evidence ||
+              "The model detected visual indicators related to this concern."}
+          </p>
+        `;
+
+        concerns.appendChild(concernCard);
+      });
+
+      data.recommendations.forEach((product) => {
+        const productCard = document.createElement("article");
+
+        productCard.innerHTML = `
+          <h3>${product.name}</h3>
+          <p><strong>Brand:</strong> ${product.brand}</p>
+          <p><strong>Match score:</strong> ${product.match_score}</p>
+          <p><strong>Ingredients:</strong>
+            ${product.ingredients.join(", ")}
+          </p>
+          <p><strong>Why it matched:</strong>
+            ${product.match_reasons.join(" • ")}
+          </p>
+          <a href="${product.url}" target="_blank" rel="noopener noreferrer">
+            View on Olive Young
+          </a>
+        `;
+
+        recommendations.appendChild(productCard);
+      });
+    } catch (error) {
+      status.textContent = "Something went wrong.";
+      console.error(error);
+    }
+  });
+</script>
 </body>
 
 </html>
